@@ -1,0 +1,10 @@
+kind: ConfigMap
+metadata:
+  name: elasticsearch-config
+  namespace: kube-system
+apiVersion: v1
+data:
+  elasticsearch.yml: |-
+    cluster.name: "elasticsearch-cluster"
+    network.host: 0.0.0.0
+    discovery.zen.minimum_master_nodes: 1

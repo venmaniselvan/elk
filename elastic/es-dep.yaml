@@ -1,0 +1,73 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: elasticsearch-logging
+  namespace: kube-system
+spec:
+  selector:
+    matchLabels:
+      app: elasticsearch-logging
+  serviceName: "elasticsearch-logging"
+  replicas: 1
+  updateStrategy:
+    type: OnDelete
+  template:
+    metadata:
+      labels:
+        app: elasticsearch-logging
+      annotations:
+    spec:
+      terminationGracePeriodSeconds: 30
+      initContainers:
+      - name: set-vm-max-map-count
+        image: busybox
+        imagePullPolicy: IfNotPresent
+        # https://github.com/elastic/elasticsearch-docker/issues/32
+        command: ['sh', '-c', 'chown -R 1000:1000 /usr/share/elasticsearch/data && sysctl -w vm.max_map_count=262144']
+        securityContext:
+          privileged: true
+        volumeMounts:
+        - name: data
+          mountPath: /usr/share/elasticsearch/data
+      containers:
+      - name: elasticsearch-logging
+        image: docker.elastic.co/elasticsearch/elasticsearch:6.8.4
+        # env:
+        # - name: ES_JAVA_OPTS
+        #   value: "-Xms1g -Xmx1g"
+        env:
+          - name: node.name
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.name
+        resources:
+          requests:
+            cpu: 0.25
+          limits:
+            cpu: 1
+        ports:
+        - containerPort: 9200
+          name: http
+        - containerPort: 9300
+          name: transport
+        volumeMounts:
+        - name: data
+          mountPath: /usr/share/elasticsearch/data
+        - name: config
+          mountPath: /usr/share/elasticsearch/config/elasticsearch.yml
+          subPath: elasticsearch.yml
+      volumes:
+      - name: config
+        configMap:
+          name: elasticsearch-config
+      # - name: data
+      #   emptyDir: {}
+  volumeClaimTemplates:
+  - metadata:
+      name: data
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      storageClassName: longhorn
+      resources:
+        requests:
+          storage: 20Gi

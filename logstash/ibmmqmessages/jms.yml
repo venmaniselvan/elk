@@ -1,0 +1,16 @@
+# IBM WebSphere MQ
+wmq:
+    :factory: com.ibm.mq.jms.MQQueueConnectionFactory
+    :queue_manager: bbax011u
+    :host_name: 10.0.204.14
+    :channel: QM.ADMIN.CLIENT
+    :port: 32154
+    # Transport Type: com.ibm.mq.jms.JMSC::MQJMS_TP_CLIENT_MQ_TCPIP
+    :transport_type: 1
+    :username: admin
+    :password: P@ssw0rd
+    :require_jars:
+        - "/usr/share/logstash/jms/jms.jar"
+        - "/usr/share/logstash/jms/com.ibm.mq.jar"
+        - "/usr/share/logstash/jms/com.ibm.mqjms.jar"
+        - "/usr/share/logstash/jms/com.ibm.mq.allclient.jar"
